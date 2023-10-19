@@ -1,5 +1,5 @@
 "use server"
-import { extractCurrency, extractPrice, extractRating } from "@/lib/utils"
+import { extractCurrency, extractDescription, extractPrice, extractRating } from "../utils"
 import axios from "axios"
 import * as cheerio from "cheerio"
 export async function scrapAmazonProduct(url: string) {
@@ -34,11 +34,7 @@ export async function scrapAmazonProduct(url: string) {
             $('.a-price.a-text-price.apexPriceToPay span.a-offscreen'),
             $('a.size.base.a-color-price'),
             $('a-button-selected .a-color-base'),
-
-
         )
-
-
 
         const originalPrice = extractPrice(
             $('#priceblock_ourprice'),
@@ -55,6 +51,8 @@ export async function scrapAmazonProduct(url: string) {
 
         const imageUrls = images ? Object.keys(JSON.parse(images)) : []
 
+        const description = extractDescription($)
+
 
         const currency = extractCurrency(
 
@@ -66,16 +64,21 @@ export async function scrapAmazonProduct(url: string) {
         const data = {
             url,
             title,
-            currentPrice: Number(currentPrice),
-            originalPrice: Number(originalPrice),
+            currentPrice: Number(currentPrice) || Number(originalPrice),
+            originalPrice: Number(originalPrice) || Number(currentPrice),
             isOutOfStock: outOfStock,
             image: imageUrls[0],
             priceHistroy: [],
             currency,
             discountRate: Number(discountRate),
-            rating: Number(rating)
+            rating: Number(rating),
+            description,
+            lowestPrice: Number(currentPrice) || Number(originalPrice),
+            highestPrice: Number(originalPrice) || Number(currentPrice),
+            avaragePrice: Number(currentPrice) || Number(originalPrice),
         }
-        console.log(data)
+        // console.log("data = ", data)
+        return data
 
 
     } catch (error: any) {
