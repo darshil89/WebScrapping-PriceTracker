@@ -31,10 +31,10 @@ export async function scrapAndStoreProduct(productUrl: string) {
 
             product = {
                 ...scrapedProduct,
-                priceHistory: updatedPriceHistory,
+                priceHistroy: updatedPriceHistory,
                 lowestPrice: getLowestPrice(updatedPriceHistory),
                 highestPrice: getHighestPrice(updatedPriceHistory),
-                averagePrice: getAveragePrice(updatedPriceHistory),
+                avaragePrice: getAveragePrice(updatedPriceHistory),
             }
         }
         const newProduct = await Product.findOneAndUpdate(
