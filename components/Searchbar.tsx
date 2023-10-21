@@ -33,10 +33,9 @@ const Searchbar = () => {
       //Scrap the product details
 
       const product = await scrapAndStoreProduct(search);
+      setLoading(false);
     } catch (error) {
       console.log(error);
-    } finally {
-      setLoading(false);
     }
   };
   return (
