@@ -1,3 +1,4 @@
+import Modal from "@/components/Modal";
 import PriceInfoCard from "@/components/PriceInfoCard";
 import ProductCard from "@/components/ProductCard";
 import { getProductById, getSimilarProducts } from "@/lib/action";
@@ -26,7 +27,7 @@ const ProductDetail = async ({ params: { id } }: Props) => {
             src={product.image}
             alt={product.title}
             width={580}
-            height={400}
+            height={350}
             className="mx-auto"
           />
         </div>
@@ -158,7 +159,7 @@ const ProductDetail = async ({ params: { id } }: Props) => {
             </div>
           </div>
 
-          {/* <Modal productId={id} /> */}
+          <Modal productId={id} />
         </div>
       </div>
 
