@@ -1,13 +1,4 @@
 import { PriceHistoryItem, Product } from "@/types";
-export function extractRating(element: any) {
-    const rating = element.text().trim().split(' ')[0]
-    if (rating) {
-        return Number(rating)
-    }
-    return 0
-}
-
-
 
 const Notification = {
   WELCOME: 'WELCOME',
@@ -23,14 +14,14 @@ export function extractPrice(...elements: any) {
   for (const element of elements) {
     const priceText = element.text().trim();
 
-    if(priceText) {
+    if (priceText) {
       const cleanPrice = priceText.replace(/[^\d.]/g, '');
 
-      let firstPrice; 
+      let firstPrice;
 
       if (cleanPrice) {
         firstPrice = cleanPrice.match(/\d+\.\d{2}/)?.[0];
-      } 
+      }
 
       return firstPrice || cleanPrice;
     }
