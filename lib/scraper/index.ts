@@ -58,7 +58,6 @@ export async function scrapAmazonProduct(url: string) {
 
             $('.a-price-symbol'),
         )
-        const category = 'category'
         const discountRate = $('.savingsPercentage').text().replace(/[-%]/g, '')
         const rating = extractRating($('.a-icon-alt'))
         //construct the product object
@@ -70,7 +69,7 @@ export async function scrapAmazonProduct(url: string) {
             isOutOfStock: outOfStock,
             image: imageUrls[0],
             priceHistory: [],
-            currency,
+            currency,            
             discountRate: Number(discountRate),
             rating: Number(rating),
             description,
