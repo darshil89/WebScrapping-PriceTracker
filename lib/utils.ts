@@ -1,4 +1,13 @@
 import { PriceHistoryItem, Product } from "@/types";
+export function extractRating(element: any) {
+    const rating = element.text().trim().split(' ')[0]
+    if (rating) {
+        return Number(rating)
+    }
+    return 0
+}
+
+
 
 const Notification = {
   WELCOME: 'WELCOME',
@@ -14,14 +23,14 @@ export function extractPrice(...elements: any) {
   for (const element of elements) {
     const priceText = element.text().trim();
 
-    if (priceText) {
+    if(priceText) {
       const cleanPrice = priceText.replace(/[^\d.]/g, '');
 
-      let firstPrice;
+      let firstPrice; 
 
       if (cleanPrice) {
         firstPrice = cleanPrice.match(/\d+\.\d{2}/)?.[0];
-      }
+      } 
 
       return firstPrice || cleanPrice;
     }
@@ -91,6 +100,15 @@ export function getAveragePrice(priceList: PriceHistoryItem[]) {
   return averagePrice;
 }
 
+
+export const formatNumber = (num: number = 0) => {
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
+
 export const getEmailNotifType = (
   scrapedProduct: Product,
   currentProduct: Product
@@ -110,9 +128,3 @@ export const getEmailNotifType = (
   return null;
 };
 
-export const formatNumber = (num: number = 0) => {
-  return num.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-};

@@ -1,31 +1,34 @@
-"use server"
+"use server";
 
 import { revalidatePath } from "next/cache";
+import { scrapAmazonProduct } from "../scraper/index";
+import { connectToDb } from "../mongoose";
 import Product from "../models/product.model";
-import { connectToDB } from "../mongoose";
-import { scrapeAmazonProduct } from "../scraper";
 import { getAveragePrice, getHighestPrice, getLowestPrice } from "../utils";
 import { User } from "@/types";
 import { generateEmailBody, sendEmail } from "../nodemailer";
 
-export async function scrapeAndStoreProduct(productUrl: string) {
-    if (!productUrl) return;
-
+export async function scrapAndStoreProduct(productUrl: string) {
+    if (!productUrl) {
+        throw new Error('Product url is required')
+    }
     try {
-        connectToDB();
-
-        const scrapedProduct = await scrapeAmazonProduct(productUrl);
-
+        await connectToDb();
+        const scrapedProduct = await scrapAmazonProduct(productUrl);
         if (!scrapedProduct) return;
 
         let product = scrapedProduct;
 
-        const existingProduct = await Product.findOne({ url: scrapedProduct.url });
+        // console.log('scrapedProduct = ', product)
+
+        const existingProduct = await Product.findOne({
+            url: scrapedProduct.url,
+        });
 
         if (existingProduct) {
             const updatedPriceHistory: any = [
                 ...existingProduct.priceHistory,
-                { price: scrapedProduct.currentPrice }
+                { price: scrapedProduct.currentPrice },
             ]
 
             product = {
@@ -36,81 +39,83 @@ export async function scrapeAndStoreProduct(productUrl: string) {
                 averagePrice: getAveragePrice(updatedPriceHistory),
             }
         }
-
         const newProduct = await Product.findOneAndUpdate(
             { url: scrapedProduct.url },
             product,
             { upsert: true, new: true }
-        );
+        )
 
-        revalidatePath(`/products/${newProduct._id}`);
+        revalidatePath(`/products/${newProduct._id}`)
+
     } catch (error: any) {
-        throw new Error(`Failed to create/update product: ${error.message}`)
+        throw new Error(`Error while scrapping product ${error.message}`)
     }
+
 }
 
 export async function getProductById(productId: string) {
+    if (!productId) {
+        throw new Error('Product id is required')
+    }
     try {
-        connectToDB();
-
-        const product = await Product.findOne({ _id: productId });
-
-        if (!product) return null;
-
+        await connectToDb();
+        const product = await Product.findById({ _id: productId });
+        if (!product) {
+            throw new Error('Product not found')
+        }
         return product;
-    } catch (error) {
-        console.log(error);
+    } catch (error: any) {
+        throw new Error(`Error while getting product ${error.message}`)
     }
 }
 
-export async function getAllProducts() {
-    try {
-        connectToDB();
-
-        const products = await Product.find();
-
-        return products;
-    } catch (error) {
-        console.log(error);
-    }
-}
 
 export async function getSimilarProducts(productId: string) {
     try {
-        connectToDB();
-
-        const currentProduct = await Product.findById(productId);
-
-        if (!currentProduct) return null;
-
+        await connectToDb();
+        const currProduct = await Product.findById(productId)
+        if (!currProduct) {
+            return null
+        }
         const similarProducts = await Product.find({
             _id: { $ne: productId },
-        }).limit(3);
+        }).limit(3)
 
         return similarProducts;
-    } catch (error) {
-        console.log(error);
+
+    } catch (error: any) {
+        throw new Error(`Error while getting products ${error.message}`)
     }
 }
+export async function getAllProducts() {
+    try {
+        await connectToDb();
+        const products = await Product.find()
+        return products;
+    } catch (error: any) {
+        throw new Error(`Error while getting products ${error.message}`)
+    }
+}
+
 
 export async function addUserEmailToProduct(productId: string, userEmail: string) {
     try {
-        const product = await Product.findById(productId);
-
-        if (!product) return;
-
-        const userExists = product.users.some((user: User) => user.email === userEmail);
-
-        if (!userExists) {
-            product.users.push({ email: userEmail });
-
-            await product.save();
-
-            const emailContent = await generateEmailBody(product, "WELCOME");
-
-            await sendEmail(emailContent, [userEmail]);
-        }
+      const product = await Product.findById(productId);
+  
+      if(!product) return;
+  
+      const userExists = product.users.some((user: User) => user.email === userEmail);
+  
+      if(!userExists) {
+        product.users.push({ email: userEmail });
+  
+        await product.save();
+  
+        const emailContent = await generateEmailBody(product, "WELCOME");
+  
+        await sendEmail(emailContent, [userEmail]);
+      }
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
-}
+  }
